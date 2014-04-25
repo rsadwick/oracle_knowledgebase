@@ -11,8 +11,8 @@ namespace KFSampleClient
         private SampleKFClient() {
             client = new RightNowKnowledgePortClient();
             if(client.ClientCredentials != null) {
-                client.ClientCredentials.UserName.UserName = "siteproduction";
-                client.ClientCredentials.UserName.Password = "siteProd02";
+                client.ClientCredentials.UserName.UserName = "";
+                client.ClientCredentials.UserName.Password = "";
             }
 
             header = new ClientInfoHeader {
