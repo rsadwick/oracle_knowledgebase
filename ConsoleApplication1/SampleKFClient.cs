@@ -1,5 +1,7 @@
 ﻿using System;
+using ConsoleApplication1;
 using Hsn.RightNow.Proxy;
+using System.Collections.Generic;
 
 namespace KFSampleClient
 {
@@ -23,7 +25,7 @@ namespace KFSampleClient
             Console.WriteLine("Created new interaction id: " + knowledgeInteractionId);
         }
 
-        private void DisplayMostPopularAnswers(int limit)
+        private List<HelpContent> DisplayMostPopularAnswers(int limit)
         {
             //create a place holder for content - no filters for search right now
             var contentSeach = new ContentSearch();
@@ -36,16 +38,19 @@ namespace KFSampleClient
             Console.WriteLine("* Status Name: " + listResponse.Status.Status.Name);
 
             var count = 1;
-            Console.WriteLine("\n ---------- Popular Answers ------------");
-
+            List<HelpContent> popularContent = null;
             foreach (var summaryContent in listResponse.SummaryContents)
             {
-                Console.WriteLine("\n#" + count + " Title: " + summaryContent.Title);
-                Console.WriteLine("\n#" + count + " Excerpt: " + summaryContent.ID.id);
-               
+                popularContent = new List<HelpContent> {
+                    new HelpContent {
+                        Id = summaryContent.ID.id,
+                        Title = summaryContent.Title,
+                        Except = summaryContent.Excerpt
+                    }
+                };
                 count++;
             }
-            Console.WriteLine("\n-------------- End Popualr ------------");
+            return popularContent;
         }
 
         private void SearchAnswers(String seachTerms, int limit, int start)
@@ -58,6 +63,12 @@ namespace KFSampleClient
             //No filters, related, spelling suggestions, security - simple example:
             var searchResponse = client.SearchContent(header, knowledgeInteractionId, seachTerms, null, false, false, limit, origin, null, null, start);
             Console.WriteLine("**** Content Request Status info:");
+            var requestStatus = new HelpRequestStatus
+            {
+                Name = searchResponse.Status.Status.Name,
+                Description = searchResponse.Status.Description,
+                ElapsedTime = searchResponse.Status.ElapsedTimeInMilliSeconds
+            };
             Console.WriteLine("* Description: " + searchResponse.Status.Description);
             Console.WriteLine("* Elapsted Time: " + searchResponse.Status.ElapsedTimeInMilliSeconds);
             Console.WriteLine("* Status Name: " + searchResponse.Status.Status.Name);
@@ -100,20 +111,24 @@ namespace KFSampleClient
             Console.WriteLine("--------End Answer Details---------");      
         }
 
-        private void RateContentSample()
+        private void RateContentSample(int id)
         {
-            var contentTemplate = new AnswerContent();
-            contentTemplate.ID = new ID() { id = 1, idSpecified = true };
+            var contentTemplate = new AnswerContent {
+                ID = new ID() {
+                    id = id,
+                    idSpecified = true
+                }
+            };
 
             var contentRate = new ContentRate {
                 ID = new ID() {
-                    id = 1,
+                    id = id,
                     idSpecified = true
                 }
             };
             var contentRateScale = new ContentRate {
                 ID = new ID() {
-                    id = 1,
+                    id = id,
                     idSpecified = true
                 }
             };
@@ -128,11 +143,26 @@ namespace KFSampleClient
             Console.WriteLine("Status Name: " + status.Status.Name);
         }
 
+        private void GetValuesForNamedIDSample()
+        {
+            //Invoke the GetValuesForNamedID operation, supplying the appropriate string value
+            var valuesForNamedId = client.GetValuesForNamedID(header, null, "ContentSortOptions.SortField");
+
+            //Display the Name and Id properties for each entry
+            foreach (var namedID in valuesForNamedId)
+            {
+                System.Console.WriteLine("\n---------------------------\n");
+                System.Console.WriteLine("Name: " + namedID.Name + " Id: " + namedID.ID.id);
+                System.Console.WriteLine("\n---------------------------\n");
+            }
+        }
+
         static void Main(string[] args)
         {
             var sampleClient = new SampleKFClient();
            //sampleClient.DisplayMostPopularAnswers(5);
-            sampleClient.SearchAnswers("accounts orders", 5, 0);
+            //sampleClient.SearchAnswers("accounts orders", 5, 0);
+            //sampleClient.GetValuesForNamedIDSample(100);
             //sampleClient.GetContentSample(100);
         }
     }
